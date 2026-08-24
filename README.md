@@ -13,17 +13,19 @@
 
 ## 安装
 
-```bash
-git clone <本仓库地址> ~/tools/docflow   # 路径随意
-cd ~/tools/docflow
-mkdir -p ~/.claude/skills ~/.agents/skills
-# Claude Code：
-for d in skills/*/; do ln -sfn "$(pwd)/$d" ~/.claude/skills/$(basename "$d"); done
-# Codex / Copilot CLI / Gemini CLI（通认 ~/.agents/skills）：
-for d in skills/*/; do ln -sfn "$(pwd)/$d" ~/.agents/skills/$(basename "$d"); done
-```
+### 让 AI 自己装（推荐）
 
-更新：仓库里 `git pull` 即可（软链自动生效）。卸载：删除对应软链。
+把这句话丢给你的 coding agent（Claude Code / Codex / Copilot CLI / Gemini CLI）：
+
+> 读 `https://raw.githubusercontent.com/lynchjjjj/docflow/main/INSTALL.md` 并按它安装 docflow
+
+[INSTALL.md](INSTALL.md) 是专门写给 agent 的：带前置检查、冲突就停下问你、装完强制自检，明确给出「✅ 安装成功」或「❌ 安装未完成」。**不会出现命令跑完了、其实没装上的情况**——安装本身有四种失败方式退出码都是 0，文档里把它们逐个堵住了。
+
+### 手动装
+
+同样照 [INSTALL.md](INSTALL.md) 做，跳过开头给 agent 的执行须知即可。别凭记忆敲 `ln -sfn`：目标位置已存在同名目录时它不会替换，而是把软链建进那个目录内部，且不报错。
+
+更新：仓库里 `git pull` 即可，软链自动生效，不用重装。卸载见 INSTALL.md。
 
 ## 5 分钟上手
 
@@ -38,19 +40,19 @@ for d in skills/*/; do ln -sfn "$(pwd)/$d" ~/.agents/skills/$(basename "$d"); do
 
 ## 技能清单
 
-| 技能 | 一句话 | 什么时候自己跳出来 |
-|---|---|---|
-| using-docflow | 入口与总规则（目录/编号/批次判据/路由） | 不确定放哪、怎么编号、开不开批次 |
-| docflow-setup | 项目接入初始化（生成项目配置，含存量迁移模式） | 「接入 docflow」；或别的技能发现缺配置 |
-| docflow-requirement | 新需求 → 需求文档 + 实现计划 | 「分析这个需求」「把 PRD 落成文档」 |
-| docflow-evolve | 已落盘需求的变更增量更新（索引定位历史） | 「上次那个需求要改」「在原有基础上加」 |
-| docflow-implement | 实现计划三态维护与中断恢复复验 | 「按实现计划做」「接着上次的进度」 |
-| docflow-changes | 变更记录（层次对照）+ 顺手沉淀约定库 | 「写变更记录」「改完了」 |
-| docflow-contract | 对接方案交付文档（八章骨架） | 「出个接口方案」「给前端的文档」 |
-| docflow-trace | 跨分支业务脉络报告（只读不改） | 「这个功能之前怎么做的」「翻一下历史」 |
-| docflow-notes | 探讨/笔记按月落盘 | 「记一下这个方案」「调研结论记录一下」 |
-| docflow-retro | 复盘提炼 → 约定库（合并去重淘汰瘦身） | 「复盘一下」「整理约定库」 |
-| docflow-analysis | 分析模式：分析→归纳→答疑，可跨终端续接 | 「进入分析模式」「继续分析 &lt;目录&gt;」 |
+| 技能                | 一句话                                         | 什么时候自己跳出来                        |
+| ------------------- | ---------------------------------------------- | ----------------------------------------- |
+| using-docflow       | 入口与总规则（目录/编号/批次判据/路由）        | 不确定放哪、怎么编号、开不开批次          |
+| docflow-setup       | 项目接入初始化（生成项目配置，含存量迁移模式） | 「接入 docflow」；或别的技能发现缺配置    |
+| docflow-requirement | 新需求 → 需求文档 + 实现计划                   | 「分析这个需求」「把 PRD 落成文档」       |
+| docflow-evolve      | 已落盘需求的变更增量更新（索引定位历史）       | 「上次那个需求要改」「在原有基础上加」    |
+| docflow-implement   | 实现计划三态维护与中断恢复复验                 | 「按实现计划做」「接着上次的进度」        |
+| docflow-changes     | 变更记录（层次对照）+ 顺手沉淀约定库           | 「写变更记录」「改完了」                  |
+| docflow-contract    | 对接方案交付文档（八章骨架）                   | 「出个接口方案」「给前端的文档」          |
+| docflow-trace       | 跨分支业务脉络报告（只读不改）                 | 「这个功能之前怎么做的」「翻一下历史」    |
+| docflow-notes       | 探讨/笔记按月落盘                              | 「记一下这个方案」「调研结论记录一下」    |
+| docflow-retro       | 复盘提炼 → 约定库（合并去重淘汰瘦身）          | 「复盘一下」「整理约定库」                |
+| docflow-analysis    | 分析模式：分析→归纳→答疑，可跨终端续接         | 「进入分析模式」「继续分析 &lt;目录&gt;」 |
 
 典型链路：`setup` 接入 → `requirement` 出需求 → `implement` 按计划写 → `contract` 给调用方 → `changes` 记录 + 顺手沉淀 → 需求变了走 `evolve` → 想查历史走 `trace` → 定期 `retro` 整理约定库。
 
