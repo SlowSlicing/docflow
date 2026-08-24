@@ -1,0 +1,59 @@
+# docflow
+
+把「**requirement（需求分析）→ contract（对接方案）→ sql（表设计）→ changes（实现记录）**」这条开发全链路的落盘流程，做成**可跨项目、跨 agent 共享的 skills 包**。
+
+**定位：个人使用。** 让你自己的多个 agent（Claude Code / Codex / Copilot / Gemini CLI 等）在你的所有项目里共用同一套流程与沉淀——需求有据可查、变更有链可追、教训沉淀成项目约定库，agent 越用越懂你的项目。
+
+核心机制：
+
+- **四层落盘目录**：`<落盘根>/<产物类型>/<分支短名>/<NNN-业务>/<NNN-批次>/`，四类产物同号同名横向对齐，允许缺席。
+- **项目配置**（`000-项目配置.md`）：所有「因项目而异」的取值住在各项目自己的配置里，skills 本身项目无关。
+- **约定库**（`conventions/`）：写变更记录时顺手沉淀被纠正的做法/踩坑/新口径，所有 skill 开工必读——「越用越聪明」的载体。条目格式：一句话规则 + 日期 + 出处链接，详情不搬运。
+- **生成式索引**（`scripts/build-index.py`）：索引是缓存不是账本，随时重建、永不失养护；跨分支追一个业务的历史脉络靠它。**依赖 python3（仅标准库，3.6+）；没有也不影响使用**——技能会降级成 `ls`+`grep` 扫目录，索引只是加速器。
+
+## 安装
+
+```bash
+git clone <本仓库地址> ~/tools/docflow   # 路径随意
+cd ~/tools/docflow
+mkdir -p ~/.claude/skills ~/.agents/skills
+# Claude Code：
+for d in skills/*/; do ln -sfn "$(pwd)/$d" ~/.claude/skills/$(basename "$d"); done
+# Codex / Copilot CLI / Gemini CLI（通认 ~/.agents/skills）：
+for d in skills/*/; do ln -sfn "$(pwd)/$d" ~/.agents/skills/$(basename "$d"); done
+```
+
+更新：仓库里 `git pull` 即可（软链自动生效）。卸载：删除对应软链。
+
+## 5 分钟上手
+
+1. 进任意项目，对 agent 说「**接入 docflow**」→ `docflow-setup` 检测项目、问答式生成 `000-项目配置.md`、建落盘骨架。
+2. 抛一段需求：「**分析这个需求：……**」→ `docflow-requirement` 消歧澄清后落盘「需求文档 + 实现计划」。
+3. 需求后来变了：「**之前那个 XX 需求要改……**」→ `docflow-evolve` 自动定位历史（含跨分支）、出变更说明、确认后增量更新。
+4. 改完代码：「**写变更记录**」→ `docflow-changes` 落一条三层对照记录，顺手把本次踩的坑沉淀进约定库。
+
+## 按需选装
+
+技能之间低耦合、单点可用：只想要变更记录，就只软链 `using-docflow` + `docflow-changes` 两个；不装的技能不影响已装的。唯一的公共依赖是入口技能 `using-docflow`（规则单一事实源）。
+
+## 技能清单
+
+| 技能 | 一句话 | 什么时候自己跳出来 |
+|---|---|---|
+| using-docflow | 入口与总规则（目录/编号/批次判据/路由） | 不确定放哪、怎么编号、开不开批次 |
+| docflow-setup | 项目接入初始化（生成项目配置，含存量迁移模式） | 「接入 docflow」；或别的技能发现缺配置 |
+| docflow-requirement | 新需求 → 需求文档 + 实现计划 | 「分析这个需求」「把 PRD 落成文档」 |
+| docflow-evolve | 已落盘需求的变更增量更新（索引定位历史） | 「上次那个需求要改」「在原有基础上加」 |
+| docflow-implement | 实现计划三态维护与中断恢复复验 | 「按实现计划做」「接着上次的进度」 |
+| docflow-changes | 变更记录（层次对照）+ 顺手沉淀约定库 | 「写变更记录」「改完了」 |
+| docflow-contract | 对接方案交付文档（八章骨架） | 「出个接口方案」「给前端的文档」 |
+| docflow-trace | 跨分支业务脉络报告（只读不改） | 「这个功能之前怎么做的」「翻一下历史」 |
+| docflow-notes | 探讨/笔记按月落盘 | 「记一下这个方案」「调研结论记录一下」 |
+| docflow-retro | 复盘提炼 → 约定库（合并去重淘汰瘦身） | 「复盘一下」「整理约定库」 |
+| docflow-analysis | 分析模式：分析→归纳→答疑，可跨终端续接 | 「进入分析模式」「继续分析 &lt;目录&gt;」 |
+
+典型链路：`setup` 接入 → `requirement` 出需求 → `implement` 按计划写 → `contract` 给调用方 → `changes` 记录 + 顺手沉淀 → 需求变了走 `evolve` → 想查历史走 `trace` → 定期 `retro` 整理约定库。
+
+## 隐私与备份
+
+落盘目录（默认 `.local/docs/`）通常含业务信息：它不进项目主仓库（git exclude），但自身是独立 git 仓库。**纯本地意味着机器坏了全丢**——建议配一个**私有** remote 定期 push，严禁推公网。
