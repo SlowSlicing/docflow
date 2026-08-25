@@ -1,0 +1,31 @@
+{
+  "name": "docflow",
+  "description": "把「需求分析 → 对接方案 → 表设计 → 实现记录」这条开发全链路的文档落盘做成固定套路：四层目录与编号批次规则、项目约定库沉淀、跨分支业务脉络追溯、生成式索引。中文技能包。",
+  "version": "0.1.0",
+  "author": {
+    "name": "博然"
+  },
+  "homepage": "https://github.com/lynchjjjj/docflow",
+  "license": "MIT",
+  "keywords": [
+    "documentation",
+    "workflow",
+    "requirements",
+    "changelog",
+    "knowledge-management",
+    "chinese"
+  ],
+  "skills": [
+    "./skills/using-docflow",
+    "./skills/docflow-setup",
+    "./skills/docflow-requirement",
+    "./skills/docflow-evolve",
+    "./skills/docflow-implement",
+    "./skills/docflow-changes",
+    "./skills/docflow-contract",
+    "./skills/docflow-trace",
+    "./skills/docflow-notes",
+    "./skills/docflow-retro",
+    "./skills/docflow-analysis"
+  ]
+}

@@ -40,6 +40,8 @@ for d in skills/*/; do ln -sfn "$(pwd)/$d" ~/.agents/skills/$(basename "$d"); do
 - **索引是缓存不是账本**：`INDEX.md` 随时可由脚本重算，不手工维护；技能里凡涉及「查历史」都必须给出无 python3 时的 `ls` + `grep` 降级路径（见 `using-docflow`《没有 python3 的机器怎么办》），不能让流程卡在脚本上。
 - **`docflow-setup` 会记录「接入包版本」**（`git describe`），升级检查模式靠对比它与 `CHANGELOG.md` 得出迁移建议——所以凡影响存量落盘产物的改动（模板字段、目录规则、配置字段增减）必须在 CHANGELOG 里显式标「迁移提示」。
 - 技能之间低耦合、可单点安装，唯一公共依赖是 `using-docflow`。新增技能时不要制造新的横向依赖。
+- **新增、删除、重命名技能时必须同步 `.claude-plugin/plugin.json` 的 `skills` 数组**，否则插件用户装不到那个技能（软链安装方式扫目录，察觉不到这个疏漏，所以它只在插件那条路上暴露）。
+- **插件 `name`（`docflow`）是不可变 slug**：已发布后改名会让安装过的用户报 `plugin-not-found`。要改 UI 显示名用 `displayName`；万不得已的改名要在 `marketplace.json` 顶层加 `renames` 映射让存量安装自动迁移。
 
 ## 写技能时的纪律
 

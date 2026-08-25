@@ -2,7 +2,7 @@
 
 把「**requirement（需求分析）→ contract（对接方案）→ sql（表设计）→ changes（实现记录）**」这条开发全链路的落盘流程，做成**可跨项目、跨 agent 共享的 skills 包**。
 
-**定位：个人使用。** 让你自己的多个 agent（Claude Code / Codex / Copilot / Gemini CLI 等）在你的所有项目里共用同一套流程与沉淀——需求有据可查、变更有链可追、教训沉淀成项目约定库，agent 越用越懂你的项目。
+**为个人多项目、多 agent 场景设计。** 让你的多个 agent（Claude Code / Codex / Copilot / Gemini CLI 等）在你的所有项目里共用同一套流程与沉淀——需求有据可查、变更有链可追、教训沉淀成项目约定库，agent 越用越懂你的项目。
 
 核心机制：
 
@@ -13,7 +13,16 @@
 
 ## 安装
 
-### 让 AI 自己装（推荐）
+### Claude Code 插件（最省事）
+
+```
+/plugin marketplace add lynchjjjj/docflow
+/plugin install docflow@docflow
+```
+
+装完重启会话即可。更新走 `/plugin`，不用管软链。**仅限 Claude Code**——用 Codex / Copilot CLI / Gemini CLI 的走下面两种。
+
+### 让 AI 自己装（跨 agent 通用）
 
 把这句话丢给你的 coding agent（Claude Code / Codex / Copilot CLI / Gemini CLI）：
 
