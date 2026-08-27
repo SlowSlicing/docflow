@@ -19,6 +19,27 @@
 
 ### 修复
 
+- **`docflow-requirement`：`description` 扩触发面，接住口语化的新功能诉求**。
+  实测发现的抢占：机器上同时启用 superpowers 插件时，它靠 `SessionStart` hook 常驻注入
+  `using-superpowers` 全文（含《Skill Priority》逐字点名的例子「"Let's build X" →
+  superpowers:brainstorming first」），而 docflow 只靠 `description` 参与路由——**话不在同一个位置上**。
+  - 四个场景实测（见 `tests/baselines/superpowers-coexist.md`），**只有一处真被抢**：
+    同一个需求、同一个沙箱起点，台词从「分析一下，出需求文档和实现计划」换成
+    「我们来给用户导入加个进度查询功能吧」，路由整个翻转——唯一调用 `superpowers:brainstorming`，
+    **一个 docflow 技能都没进**，`.local/docs/` 零产出。
+  - 事前担心的另外三处**全部未复现**：`executing-plans` 没抢走 `docflow-implement`；
+    没建 worktree、没切分支（分支短名照常算对）；TDD 铁律没拦住任务推进。
+    `docflow-implement`/`docflow-changes`/`docflow-contract` 那条链跑得很干净，
+    连「计划里没列产出变更记录任务也照落」都保住了。
+  - 病灶在 `description` 的触发面，不在正文：原文开头是「拿到新的原始需求」，触发词清一色
+    「需求」类词汇，而用户日常提新功能大量是「我们来做个 X 吧」「给 X 加个 Y」这种口语形态。
+    **正文一个字没加**——被抢的那次 `SKILL.md` 正文根本没被加载过，往正文写防御条款不会被读到。
+  - 修法是**正向配方**（扩触发面），不是禁令：description 补口语形态与对应触发词，
+    并写明「本技能自带需求澄清与方案比选，新功能诉求直接进本技能，不必先走通用的头脑风暴 /
+    方案探讨类技能」。**不点名任何第三方技能包**，保持本包与外部生态解耦。
+  - GREEN 验证：同沙箱、同台词重跑，改为 `docflow-requirement` → `using-docflow`，
+    并明确宣告「我用 docflow-requirement 走需求分析落盘流程」，brainstorming 零出现。
+
 - **`using-docflow`：四层目录的「文件」层补硬约束——`NNN-` 前缀后必须带能区分内容的描述**
   （`002-批量截断改分页.md` ✅ / `002-修复.md` ❌）。
   这是《引用格式》「只写文件名」的地基：编号只在批次内唯一，**描述那段才让文件名全局唯一**。
