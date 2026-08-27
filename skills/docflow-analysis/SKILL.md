@@ -74,7 +74,7 @@ description: Use when the user says "进入分析模式" / "继续分析 <目录
 | 素材类型 | 出处格式 | 示例 |
 |---|---|---|
 | 代码 | `仓库相对路径:行号`（宜附 `类名#方法名`） | `service/impl/FooServiceImpl.java:123`（`FooServiceImpl#doSync`） |
-| 本地文档/素材 | `文件路径 § 章节` | `inputs/001-需求原文.md § 三、对账规则` |
+| 本地文档/素材 | 见 `using-docflow`《引用格式》：最短唯一标识 + `§ 章节标题原文` | `001-需求原文.md § 三、对账规则` |
 | 网页 | URL（必要时带锚点） | `https://example.com/pricing § 企业版` |
 | 本主题已有产物 | 主题内相对路径 | `analysis/002-竞品定价.md` |
 
