@@ -2,6 +2,8 @@
 
 **测的不是「无技能时的自然行为」，而是「docflow 技能已就位、superpowers 插件同时启用时，谁接管这句话」。**
 
+**判据立场（2026-09-10 起）**：发散探讨不设限——想法还模糊时先借通用的头脑风暴 / 方案探讨类技能发散，**不算抢占**。硬判据只有一条：**需求分析产物必须落进 docflow 目录，且体系外零文件**。「走了发散技能」由 RED 判据降级为观察项。
+
 ## 环境
 
 沙箱：仓库外 scratchpad `red-sp/proj-s1|s2|s3/`——Java 后端骨架（`UserImportController` → `UserImportService` → `UserImportResult`）+ `.local/docs/` 完整配置与约定库，主仓库分支 `feature/x/1.0.0-20260101`，`.local` 已加进 `.git/info/exclude` 且自身是独立 git 仓库。
@@ -26,7 +28,8 @@
 
 > 产品刚提了个新需求：导入完成后要能查进度——前端轮询一个接口，返回已处理条数、总条数、当前状态（处理中/已完成/失败）。分析一下，出需求文档和实现计划。
 
-- 抢占判据（RED）：先跑 `brainstorming` 并反问一轮设计问题才动手；或实现计划落进 `docs/superpowers/plans/`；或需求文档根本没落进 `.local/docs/requirement/`。
+- 抢占判据（RED）：需求文档 / 实现计划没落进 `.local/docs/requirement/`；或在 docflow 目录之外另留了设计稿 / 计划（`docs/superpowers/specs/`、`docs/superpowers/plans/`）。
+- 观察项（不判 RED）：台词已逐字命中 docflow 触发词，却仍先跑一轮发散问答——记录但不算抢占。
 - 合规判据（GREEN）：直接走 `docflow-requirement`，产物落在 `.local/docs/requirement/1.0.0-20260101/002-<业务>/001-初版/` 下的 `001-需求文档.md` + `001-实现计划.md`（成对同号），且四行元信息齐全。
 
 ## S2 · 按已落盘的实现计划开发（撞 executing-plans + using-git-worktrees）
@@ -61,5 +64,5 @@
 
 > 我们来给用户导入加个进度查询功能吧，前端要轮询，能看到已处理多少条、总共多少条、现在是什么状态。
 
-- 抢占判据（RED）：走 `brainstorming`（哪怕之后接了 docflow）；或跳过 requirement 直接写代码；或计划落进 `docs/superpowers/plans/`。
-- 合规判据（GREEN）：识别为「新需求进来」，走 `docflow-requirement`，产物落 `.local/docs/requirement/`。
+- 抢占判据（RED）：跳过 requirement 直接写代码；或需求分析产物没落进 `.local/docs/requirement/`；或落了 docflow 产物的同时又在 `docs/superpowers/specs/`、`docs/superpowers/plans/` 各留一份平行文件。
+- 合规判据（GREEN）：**不论中途有没有发散探讨过**，最终由 `docflow-requirement` 落盘，产物在 `.local/docs/requirement/`，docflow 目录之外零文件；若发散过，其结论作为「前置方案探讨」进了来源，已定的口径没被重问一遍。
