@@ -43,12 +43,31 @@ def main():
     # 多批次：最新批次没写元信息时，应回退到更早批次去取
     assert "初版写了目标，后续批次没写" in index, "元信息应能从更早批次回退取到"
 
+    # 承接路径写成行内代码（带反引号）照样认，不报悬空
+    assert "004-反引号承接 的「承接自」" not in index, "反引号包着的承接路径不应报悬空"
+
     # --check-only：不写文件、有警告 exit 1
     index_path.unlink()
     r2 = run(str(tmp), "--check-only")
     assert r2.returncode == 1, f"--check-only 有警告应 exit 1，实际 {r2.returncode}"
     assert not index_path.exists(), "--check-only 不应写 INDEX.md"
     assert "悬空" in r2.stderr and "撞号" in r2.stderr, "警告应打到 stderr"
+
+    # 约定库体检：续行算进条目字数；归档目录不计
+    assert "约定条目超长" in r2.stderr and "002-编码约定.md 有 1 条" in r2.stderr, \
+        f"应报 1 条超长（续行计入、归档不计）：{r2.stderr}"
+    assert "归档" not in r2.stderr, "归档目录不应被体检"
+    assert "约定库超预算" not in r2.stderr, "默认预算下样本不应超预算"
+    # 预算可由参数调：条数上限 2、单文件字符上限 100 时两项都报
+    r3 = run(str(tmp), "--check-only", "--conv-max-entries", "2", "--conv-max-file-chars", "100")
+    assert "共 3 条，上限 2" in r3.stderr, f"应报条数超预算：{r3.stderr}"
+    assert "上限 100" in r3.stderr, f"应报字数超预算：{r3.stderr}"
+    # 调高单条上限后不再报超长
+    r4 = run(str(tmp), "--check-only", "--conv-max-chars", "1000")
+    assert "约定条目超长" not in r4.stderr, "上限调高后不应报超长"
+    # 约定库警告也进 INDEX.md 的警告节
+    run(str(tmp))
+    assert "约定条目超长" in index_path.read_text(encoding="utf-8"), "约定库警告应写进索引"
 
     print("PASS")
 

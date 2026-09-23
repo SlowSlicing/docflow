@@ -10,6 +10,10 @@
 - 正常模式：在 <落盘根>/INDEX.md 生成索引（含警告节），exit 0。
 - --check-only：不写任何文件，警告打 stderr；有警告 exit 1，无警告 exit 0。
 
+同时体检约定库 <落盘根>/conventions/（不含归档子目录）：单条超长、单文件条数或字数超预算
+各报一条警告。预算默认值见 using-docflow《约定库》，项目可在配置里改，调用时用 --conv-* 传入。
+「一条」= 以 `- 【` 开头的行，连同其后缩进的续行；按字符数计（不按行数——一行可以写九百字）。
+
 元信息行约定（与 docflow-requirement 的需求文档模板一致）：
     - 一句话目标：<...>
     - 承接自：<相对落盘根的 requirement 批次目录路径> 或 无
@@ -29,6 +33,13 @@ RE_NNN_DIR = re.compile(r"^\d{3}-")
 RE_GOAL = re.compile(r"^- 一句话目标：(.+)$")
 RE_FOLLOWS = re.compile(r"^- 承接自：(.+)$")
 HEAD_LINES = 30  # 元信息只看文档前 30 行
+CONV_DIR = "conventions"
+CONV_ARCHIVE = "归档"          # 退休条目的去处，开工不读、不计预算
+CONV_ENTRY_PREFIX = "- 【"
+CONV_MAX_CHARS = 150           # 单条上限（字符，含日期与出处）
+CONV_MAX_ENTRIES = 50          # 单文件条数上限
+CONV_MAX_FILE_CHARS = 8000     # 单文件总字符上限（非条目的正文也算）
+CONV_SHOW_LINES = 5            # 超长条目警告里最多列几个行号
 
 
 def numbered_subdirs(path: Path):
@@ -53,7 +64,7 @@ def read_meta(doc: Path):
             goal = m.group(1).strip()
         m = RE_FOLLOWS.match(line.strip())
         if m:
-            follows = m.group(1).strip()
+            follows = m.group(1).strip().strip("`").strip()  # 路径常被写成行内代码
     return goal, follows
 
 
@@ -130,6 +141,49 @@ def scan(root: Path, types):
     return biz_map, warnings
 
 
+def conv_entries(lines):
+    """把约定文件拆成条目：返回 [(起始行号, 条目全文)]。
+
+    续行 = 紧跟在条目后、以空白开头的非空行；遇到空行或顶格行即结束当前条目。
+    """
+    entries, current = [], None
+    for i, line in enumerate(lines, 1):
+        if line.startswith(CONV_ENTRY_PREFIX):
+            current = [i, line.rstrip()]
+            entries.append(current)
+        elif current and line.strip() and line[:1] in (" ", "\t"):
+            current[1] += line.strip()
+        else:
+            current = None
+    return [tuple(e) for e in entries]
+
+
+def check_conventions(root: Path, max_chars, max_entries, max_file_chars):
+    """约定库体检：返回警告列表。归档子目录不计。"""
+    warnings = []
+    conv = root / CONV_DIR
+    if not conv.is_dir():
+        return warnings
+    for f in sorted(conv.glob("*.md")):
+        try:
+            text = f.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        entries = conv_entries(text.splitlines())
+        rel = f"{CONV_DIR}/{f.name}"
+        if len(text) > max_file_chars:
+            warnings.append(f"约定库超预算：{rel} 共 {len(text)} 字，上限 {max_file_chars}")
+        if len(entries) > max_entries:
+            warnings.append(f"约定库超预算：{rel} 共 {len(entries)} 条，上限 {max_entries}")
+        long = [n for n, body in entries if len(body) > max_chars]
+        if long:
+            shown = "、".join(str(n) for n in long[:CONV_SHOW_LINES])
+            more = " 等" if len(long) > CONV_SHOW_LINES else ""
+            warnings.append(
+                f"约定条目超长：{rel} 有 {len(long)} 条超过 {max_chars} 字（行 {shown}{more}）")
+    return warnings
+
+
 def render(root: Path, biz_map, warnings, types):
     lines = [
         "# 落盘索引（自动生成，勿手改）",
@@ -166,6 +220,12 @@ def main():
                         help=f"要扫描的产物类型目录，逗号分隔（默认 {DEFAULT_TYPES}）")
     parser.add_argument("--check-only", action="store_true",
                         help="只体检不写文件；有警告 exit 1")
+    parser.add_argument("--conv-max-chars", type=int, default=CONV_MAX_CHARS,
+                        help=f"约定库单条字符上限（默认 {CONV_MAX_CHARS}）")
+    parser.add_argument("--conv-max-entries", type=int, default=CONV_MAX_ENTRIES,
+                        help=f"约定库单文件条数上限（默认 {CONV_MAX_ENTRIES}）")
+    parser.add_argument("--conv-max-file-chars", type=int, default=CONV_MAX_FILE_CHARS,
+                        help=f"约定库单文件字符上限（默认 {CONV_MAX_FILE_CHARS}）")
     args = parser.parse_args()
 
     root = Path(args.root)
@@ -175,6 +235,8 @@ def main():
     types = [t.strip() for t in args.types.split(",") if t.strip()]
 
     biz_map, warnings = scan(root, types)
+    warnings += check_conventions(root, args.conv_max_chars, args.conv_max_entries,
+                                  args.conv_max_file_chars)
     for w in warnings:
         print(w, file=sys.stderr)
 
