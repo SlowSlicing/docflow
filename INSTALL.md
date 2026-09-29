@@ -30,7 +30,7 @@
 没有的话再 clone，路径随意：
 
 ```bash
-git clone https://github.com/lynchjjjj/docflow ~/tools/docflow
+git clone https://github.com/SlowSlicing/docflow ~/tools/docflow
 ```
 
 ## 第 2 步：确定包根的绝对路径
