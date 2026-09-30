@@ -6,9 +6,16 @@
 
 用法：
     python3 build-index.py <落盘根路径> [--types requirement,changes,frontend,contract,sql] [--check-only]
+    python3 build-index.py <落盘根路径> --next <分支短名>
 
 - 正常模式：在 <落盘根>/INDEX.md 生成索引（含警告节），exit 0。
 - --check-only：不写任何文件，警告打 stderr；有警告 exit 1，无警告 exit 0。
+- --next：给新业务取号。扫落盘根下**所有**含该分支目录的产物类型（不受 --types 限制，
+  自定义类型也算），打印最大业务号 +1（三位），不写任何文件。
+  只看 requirement 取号会撞上「只有变更记录」的业务——这是真实发生过的撞号来源。
+
+业务撞号按「分支 + 三位号」跨类型判：同一个号在任意类型下出现了不同的业务名就报，
+requirement 下的 056-A 与 changes 下的 056-B 也算撞。
 
 同时体检约定库 <落盘根>/conventions/（不含归档子目录）：单条超长、单文件条数或字数超预算
 各报一条警告。预算默认值见 using-docflow《约定库》，项目可在配置里改，调用时用 --conv-* 传入。
@@ -95,14 +102,6 @@ def scan(root: Path, types):
             continue
         for branch_dir in sorted(d for d in type_dir.iterdir() if d.is_dir()):
             biz_dirs = numbered_subdirs(branch_dir)
-            # 撞号检测：同分支同类型下 NNN 前缀重复
-            by_num = {}
-            for b in biz_dirs:
-                by_num.setdefault(b.name[:3], []).append(b.name)
-            for num, names in sorted(by_num.items()):
-                if len(names) > 1:
-                    warnings.append(
-                        f"业务撞号：{type_name}/{branch_dir.name} 下号 {num} 重复：{' / '.join(sorted(names))}")
             for biz_dir in biz_dirs:
                 key = (branch_dir.name, biz_dir.name)
                 info = biz_map.setdefault(key, {
@@ -131,6 +130,15 @@ def scan(root: Path, types):
                 if mtime > info["mtime"]:
                     info["mtime"] = mtime
 
+    # 撞号检测：同分支下同一个三位号对应了不止一个业务名（跨类型合并判断）
+    by_num = {}   # (branch, num) -> {biz_name: [types]}
+    for (branch, biz), info in biz_map.items():
+        by_num.setdefault((branch, biz[:3]), {})[biz] = info["types"]
+    for (branch, num), names in sorted(by_num.items()):
+        if len(names) > 1:
+            parts = [f"{n}（{','.join(t)}）" for n, t in sorted(names.items())]
+            warnings.append(f"业务撞号：{branch} 下号 {num} 重复：{' / '.join(parts)}")
+
     # 承接悬空检测
     for (branch, biz), info in sorted(biz_map.items()):
         follows = info["follows"]
@@ -139,6 +147,17 @@ def scan(root: Path, types):
                 f"承接悬空：requirement/{branch}/{biz} 的「承接自」指向不存在路径 {follows}")
 
     return biz_map, warnings
+
+
+def next_number(root: Path, branch: str) -> str:
+    """新业务号：落盘根下所有含该分支目录的产物类型里，最大业务号 +1。
+
+    不按 --types 过滤：取号漏看任何一类都可能撞号（只有变更记录、只有 SQL 的业务都存在）。
+    """
+    nums = []
+    for type_dir in sorted(d for d in root.iterdir() if d.is_dir()):
+        nums += [int(b.name[:3]) for b in numbered_subdirs(type_dir / branch)]
+    return f"{(max(nums) if nums else 0) + 1:03d}"
 
 
 def conv_entries(lines):
@@ -220,6 +239,8 @@ def main():
                         help=f"要扫描的产物类型目录，逗号分隔（默认 {DEFAULT_TYPES}）")
     parser.add_argument("--check-only", action="store_true",
                         help="只体检不写文件；有警告 exit 1")
+    parser.add_argument("--next", metavar="分支短名",
+                        help="打印该分支下一个可用业务号（扫全部产物类型），不写文件")
     parser.add_argument("--conv-max-chars", type=int, default=CONV_MAX_CHARS,
                         help=f"约定库单条字符上限（默认 {CONV_MAX_CHARS}）")
     parser.add_argument("--conv-max-entries", type=int, default=CONV_MAX_ENTRIES,
@@ -233,6 +254,10 @@ def main():
         print(f"落盘根不存在：{root}", file=sys.stderr)
         sys.exit(2)
     types = [t.strip() for t in args.types.split(",") if t.strip()]
+
+    if args.next:
+        print(next_number(root, args.next))
+        sys.exit(0)
 
     biz_map, warnings = scan(root, types)
     warnings += check_conventions(root, args.conv_max_chars, args.conv_max_entries,

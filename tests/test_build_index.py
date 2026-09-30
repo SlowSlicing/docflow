@@ -43,6 +43,18 @@ def main():
     # 多批次：最新批次没写元信息时，应回退到更早批次去取
     assert "初版写了目标，后续批次没写" in index, "元信息应能从更早批次回退取到"
 
+    # 跨类型撞号：requirement 下 003-多批次业务 与 sql 下 003-跨类型撞号 同号不同名，要报
+    assert "003-多批次业务" in index and "003-跨类型撞号（sql）" in index, "跨类型同号不同名应报撞号"
+    # 同一业务横跨多个类型不是撞号
+    assert "下号 001 重复" not in index, "同名业务跨类型不应报撞号"
+
+    # --next：取号扫全部产物类型。requirement 最大 004，只有变更记录的 005 也要算进去 → 006
+    rn = run(str(tmp), "--next", "1.1.0-20260201")
+    assert rn.returncode == 0 and rn.stdout.strip() == "006", f"--next 应返回 006：{rn.stdout!r} {rn.stderr}"
+    # 没有任何业务的分支从 001 开始；--next 不写文件
+    rn2 = run(str(tmp), "--next", "9.9.9-20991231")
+    assert rn2.stdout.strip() == "001", f"空分支应返回 001：{rn2.stdout!r}"
+
     # 承接路径写成行内代码（带反引号）照样认，不报悬空
     assert "004-反引号承接 的「承接自」" not in index, "反引号包着的承接路径不应报悬空"
 
