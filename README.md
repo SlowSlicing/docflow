@@ -16,7 +16,7 @@
 ### Claude Code 插件（最省事）
 
 ```
-/plugin marketplace add lynchjjjj/docflow
+/plugin marketplace add SlowSlicing/docflow
 /plugin install docflow@docflow
 ```
 
@@ -26,7 +26,7 @@
 
 把这句话丢给你的 coding agent（Claude Code / Codex / Copilot CLI / Gemini CLI）：
 
-> 读 `https://raw.githubusercontent.com/lynchjjjj/docflow/main/INSTALL.md` 并按它安装 docflow
+> 读 `https://raw.githubusercontent.com/SlowSlicing/docflow/main/INSTALL.md` 并按它安装 docflow
 
 [INSTALL.md](INSTALL.md) 是专门写给 agent 的：带前置检查、冲突就停下问你、装完强制自检，明确给出「✅ 安装成功」或「❌ 安装未完成」。**不会出现命令跑完了、其实没装上的情况**——安装本身有四种失败方式退出码都是 0，文档里把它们逐个堵住了。
 
